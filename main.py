@@ -1,4 +1,3 @@
-
 from pyrogram import Client, filters
 from pyrogram.types import Message
 import os, json, datetime, re
@@ -23,10 +22,10 @@ def is_valid_url(text):
 
 @bot.on_message(filters.command("start"))
 async def start(_, m: Message):
-    await m.reply("🔥 Warrior Uploader Bot
+    await m.reply("""🔥 Warrior Uploader Bot
 
 Send a .txt file with Classplus video links.
-Bot will auto-download and send you the videos (Premium only).")
+Bot will auto-download and send you the videos (Premium only).""")
 
 @bot.on_message(filters.command("profile"))
 async def profile(_, m: Message):
@@ -34,15 +33,15 @@ async def profile(_, m: Message):
     uid = str(m.from_user.id)
     if uid in users:
         exp = users[uid]["expires"]
-        await m.reply(f"👤 Your Profile:
+        await m.reply(f"""👤 Your Profile:
 
 🆔 User ID: {uid}
 💼 Status: Premium
-⏳ Expires: {exp}")
+⏳ Expires: {exp}""")
     else:
-        await m.reply("🆔 User ID: {}
+        await m.reply(f"""🆔 User ID: {uid}
 💼 Status: Free User
-⛔ No active premium plan.".format(uid))
+⛔ No active premium plan.""")
 
 @bot.on_message(filters.command("redeem"))
 async def redeem(_, m: Message):
@@ -50,20 +49,24 @@ async def redeem(_, m: Message):
         code = m.text.split()[1]
     except:
         return await m.reply("❌ Use: /redeem <code>")
+    
     users = load_users()
     uid = str(m.from_user.id)
+    
     with open("redeem_codes.json", "r") as f:
         codes = json.load(f)
+
     if code in codes and not codes[code]["used"]:
         exp = (datetime.datetime.now() + datetime.timedelta(days=DAYS)).strftime("%d %b %Y")
         users[uid] = {"expires": exp}
         codes[code]["used"] = True
+
         with open("user_db.json", "w") as f1:
             json.dump(users, f1, indent=2)
         with open("redeem_codes.json", "w") as f2:
             json.dump(codes, f2, indent=2)
-        await m.reply(f"✅ Code Applied: {code}
-🎉 Premium Unlocked till {exp}")
+
+        await m.reply(f"✅ Code Applied: {code}\n🎉 Premium Unlocked till {exp}")
     else:
         await m.reply("❌ Invalid or already used redeem code.")
 
@@ -72,8 +75,7 @@ async def handle_txt(_, m: Message):
     users = load_users()
     uid = str(m.from_user.id)
     if uid not in users:
-        return await m.reply("⛔ You need Premium to use this feature.
-Use /redeem <code>")
+        return await m.reply("⛔ You need Premium to use this feature.\nUse /redeem <code>")
 
     doc = m.document
     if not doc.file_name.endswith(".txt"):
