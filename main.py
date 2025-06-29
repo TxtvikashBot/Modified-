@@ -22,7 +22,7 @@ def is_valid_url(text):
 
 @bot.on_message(filters.command("start"))
 async def start(_, m: Message):
-    await m.reply("Vikash uploader bot".)
+    await m.reply("Vikash uploader bot")
 
 Send a .txt file with Classplus video links.
 Bot will auto-download and send you the videos (Premium only).""")
