@@ -1,4 +1,3 @@
-
 from pyrogram import Client, filters
 from pyrogram.types import Message
 import os, json, datetime, re
@@ -23,10 +22,7 @@ def is_valid_url(text):
 
 @bot.on_message(filters.command("start"))
 async def start(_, m: Message):
-    await m.reply("""🔥Warrior Uploader Bot
-
-Send a .txt file with Classplus video links.
-Bot will auto-download and send you the videos (Premium only).""")
+    await m.reply("🔥 Warrior Uploader Bot\n\nSend a .txt file with Classplus video links.\nBot will auto-download and send you the videos (Premium only).")
 
 @bot.on_message(filters.command("profile"))
 async def profile(_, m: Message):
@@ -34,15 +30,9 @@ async def profile(_, m: Message):
     uid = str(m.from_user.id)
     if uid in users:
         exp = users[uid]["expires"]
-        await m.reply(f"👤 Your Profile:
-
-🆔 User ID: {uid}
-💼 Status: Premium
-⏳ Expires: {exp}")
+        await m.reply(f"👤 Your Profile:\n\n🆔 User ID: {uid}\n💼 Status: Premium\n⏳ Expires: {exp}")
     else:
-        await m.reply("🆔 User ID: {}
-💼 Status: Free User
-⛔ No active premium plan.".format(uid))
+        await m.reply(f"👤 Your Profile:\n\n🆔 User ID: {uid}\n💼 Status: Free User\n⛔ No active premium plan.")
 
 @bot.on_message(filters.command("redeem"))
 async def redeem(_, m: Message):
@@ -50,20 +40,24 @@ async def redeem(_, m: Message):
         code = m.text.split()[1]
     except:
         return await m.reply("❌ Use: /redeem <code>")
+
     users = load_users()
     uid = str(m.from_user.id)
-    with open("redeem_codes.json", "r") as f:
-        codes = json.load(f)
+
+    try:
+        with open("redeem_codes.json", "r") as f:
+            codes = json.load(f)
+    except FileNotFoundError:
+        return await m.reply("❌ Redeem code database not found.")
+
     if code in codes and not codes[code]["used"]:
         exp = (datetime.datetime.now() + datetime.timedelta(days=DAYS)).strftime("%d %b %Y")
         users[uid] = {"expires": exp}
         codes[code]["used"] = True
-        with open("user_db.json", "w") as f1:
-            json.dump(users, f1, indent=2)
+        save_users(users)
         with open("redeem_codes.json", "w") as f2:
             json.dump(codes, f2, indent=2)
-        await m.reply(f"✅ Code Applied: {code}
-🎉 Premium Unlocked till {exp}")
+        await m.reply(f"✅ Code Applied: {code}\n🎉 Premium Unlocked till {exp}")
     else:
         await m.reply("❌ Invalid or already used redeem code.")
 
@@ -72,12 +66,11 @@ async def handle_txt(_, m: Message):
     users = load_users()
     uid = str(m.from_user.id)
     if uid not in users:
-        return await m.reply("⛔ You need Premium to use this feature.
-Use /redeem <code>")
+        return await m.reply("⛔ You need Premium to use this feature.\nUse /redeem <code>")
 
     doc = m.document
     if not doc.file_name.endswith(".txt"):
-        return
+        return await m.reply("❌ Only .txt files are allowed.")
 
     downloaded = await m.download()
     with open(downloaded, "r") as f:
@@ -88,7 +81,7 @@ Use /redeem <code>")
 
     os.makedirs("downloads", exist_ok=True)
 
-    for i, link in enumerate(links[:3]):  # Limit to 3 for speed
+    for i, link in enumerate(links[:3]):  # Limit to 3 for now
         try:
             ydl_opts = {
                 "outtmpl": f"downloads/video_{i}{WATERMARK_TAG}.mp4",
